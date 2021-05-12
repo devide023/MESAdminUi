@@ -5,14 +5,15 @@
       :visible.sync="showdialog"
       @close="close_dialog_handle"
     >
-      <el-table :data="list" style="width: 100%">
+      <el-table :data="list"
+      :empty-text="empty_text"
+      style="width: 100%">
         <el-table-column header-align="center" align="center" label="左括号">
           <template slot-scope="scope">
             <el-select
               v-model="scope.row.left"
               size="small"
-              placeholder=""
-              style="width: 50px"
+              clearable
             >
               <el-option
                 v-for="(item, index) in leftlist"
@@ -55,13 +56,13 @@
             <el-input
               v-model="scope.row.value"
               size="small"
-              placeholder=""
+              clearable
             ></el-input>
           </template>
         </el-table-column>
         <el-table-column header-align="center" align="center" label="逻辑值">
           <template slot-scope="scope">
-            <el-select v-model="scope.row.logic" size="small" placeholder="">
+            <el-select v-model="scope.row.logic" size="small" clearable>
               <el-option
                 v-for="(item, index) in logiclist"
                 :key="index"
@@ -77,8 +78,7 @@
             <el-select
               v-model="scope.row.right"
               size="small"
-              placeholder=""
-              style="width: 50px"
+              clearable
             >
               <el-option
                 v-for="(item, index) in rightlist"
@@ -126,13 +126,20 @@ export default {
       list: [],
       rowindex: 0,
       isclose:false,
+      empty_text:'查询条件为空',
       leftlist: [
         { label: "", value: "" },
         { label: "(", value: "(" },
+        { label: "((", value: "((" },
+        { label: "(((", value: "(((" },
+        { label: "((((", value: "((((" },
       ],
       rightlist: [
         { label: "", value: "" },
         { label: ")", value: ")" },
+        { label: "))", value: "))" },
+        { label: ")))", value: ")))" },
+        { label: "))))", value: "))))" },
       ],
       operlist: [
         { label: "包含", value: "like" },

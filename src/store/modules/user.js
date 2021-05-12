@@ -54,6 +54,7 @@ const actions = {
         if (!response) {
           reject('Verification failed, please Login again.')
         }
+        console.log(response.menulist)
         let strmenus = JSON.stringify(response.menulist)
         setUserMenus(strmenus)
         const user_route = constantRoutes.concat(get_user_menus(response.menulist))
