@@ -18,12 +18,29 @@
       :load="get_submenu"
       :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
     >
-      <el-table-column label="状态" prop="status"></el-table-column>
+      <el-table-column label="状态">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">{{
+            scope.row.status === 1 ? "启用" : "禁用"
+          }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="编码" prop="code"></el-table-column>
       <el-table-column label="名称" prop="title"></el-table-column>
+      <el-table-column label="类型">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.menutype | typecolor">{{
+            scope.row.menutype | typename
+          }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="路由路径" prop="path"></el-table-column>
-      <el-table-column label="试图路径" prop="viewpath"></el-table-column>
-      <el-table-column label="图标" prop="icon"></el-table-column>
+      <el-table-column label="视图路径" prop="viewpath"></el-table-column>
+      <el-table-column label="图标">
+        <template slot-scope="scope">
+          <svg-icon :icon-class="scope.row.icon" />
+        </template>
+      </el-table-column>
       <el-table-column label="操作员" prop="adduser"></el-table-column>
       <el-table-column label="操作日期">
         <template slot-scope="scope">
@@ -41,7 +58,7 @@
                 >编辑</el-dropdown-item
               >
               <el-dropdown-item @click.native="add_sub_menu(scope.row)"
-                >新增</el-dropdown-item
+                >子项</el-dropdown-item
               >
             </el-dropdown-menu>
           </el-dropdown>
@@ -59,93 +76,224 @@
       background
       style="text-align: right"
     ></el-pagination>
-
-    <el-dialog :title="dialog_title" :visible.sync="dialog_add" top="10px">
-        <el-form :model="menu_form"
-            ref="menu_form"
-            :rules="rules"
-            label-width="80px"
-            label-position="right"
-            size="small">
-          <el-form-item label="编码" prop="code">
-              <el-input v-model="menu_form.code" placeholder=""></el-input>
-          </el-form-item>
-          <el-form-item label="名称" prop="title">
-              <el-input v-model="menu_form.title" placeholder=""></el-input>
-          </el-form-item>
-          <el-form-item label="路由路径" prop="path">
-              <el-input v-model="menu_form.path" placeholder=""></el-input>
-          </el-form-item>
-          <el-form-item label="菜单类型" prop="menutype">
-              <el-select v-model="menu_form.menutype" placeholder="" style="width:100%">
-                <el-option v-for="(item,index) in menutypes" :key="index" :label="item.name" :value="item.code"></el-option>
-              </el-select>
-          </el-form-item>
-          <el-form-item label="视图路径" prop="viewpath">
-              <el-input v-model="menu_form.viewpath" placeholder=""></el-input>
-          </el-form-item>
-          <el-form-item label="图标" prop="icon">
-              <el-select v-model="menu_form.icon" placeholder="" style="width:100%">
-                <el-option v-for="(item,index) in elementIcons" :key="index" :value="item" :label="item">
-                    <span style="float: left">{{ item }}</span>
-                    <span style="float: right"><i :class="'el-icon-'+item"></i></span>
-                </el-option>
-              </el-select>
-          </el-form-item>
-          <el-form-item label="权重">
-              <el-input-number v-model="menu_form.seq" :min="10" :step="10" placeholder="" @change="handlechange"></el-input-number>
-          </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
+    <!--添加菜单表单-->
+    <el-dialog
+      :title="dialog_title"
+      :visible.sync="dialog_add"
+      top="10px"
+      @open="dialog_open_handle"
+    >
+      <el-form
+        :model="menu_form"
+        ref="menu_form"
+        :rules="rules"
+        label-width="80px"
+        label-position="right"
+        size="small"
+      >
+        <el-form-item label="编码" prop="code">
+          <el-input v-model="menu_form.code" placeholder=""></el-input>
+        </el-form-item>
+        <el-form-item label="名称" prop="title">
+          <el-input v-model="menu_form.title" placeholder=""></el-input>
+        </el-form-item>
+        <el-form-item label="路由路径" prop="path">
+          <el-input v-model="menu_form.path" placeholder=""></el-input>
+        </el-form-item>
+        <el-form-item label="菜单类型" prop="menutype">
+          <el-select
+            v-model="menu_form.menutype"
+            placeholder=""
+            style="width: 100%"
+          >
+            <el-option
+              v-for="(item, index) in menutypes"
+              :key="index"
+              :label="item.name"
+              :value="item.code"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="视图路径" prop="viewpath">
+          <el-input v-model="menu_form.viewpath" placeholder=""></el-input>
+        </el-form-item>
+        <el-form-item label="图标" prop="icon">
+          <el-select
+            v-model="menu_form.icon"
+            placeholder=""
+            style="width: 100%"
+          >
+            <el-option
+              v-for="(item, index) in elementIcons"
+              :key="index"
+              :value="item"
+              :label="item"
+            >
+              <span style="float: left">{{ item }}</span>
+              <span style="float: right"
+                ><svg-icon :icon-class="item"></svg-icon
+              ></span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="权重">
+          <el-input-number
+            v-model="menu_form.seq"
+            :min="10"
+            :step="10"
+            placeholder=""
+            @change="handlechange"
+          ></el-input-number>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
         <el-button type="danger" @click="dialog_add = false">取消</el-button>
         <el-button type="primary" @click="save_menu">确定</el-button>
       </div>
     </el-dialog>
-
+    <!--添加页面功能、数据功能-->
+    <el-dialog
+      :title="dialog_title"
+      :visible.sync="dialog_fun_add"
+      @open="dialog_open_handle"
+    >
+      <el-form
+        ref="form_funs"
+        :rules="rules"
+        :model="menu_form"
+        label-width="80px"
+        label-position="right"
+        size="small"
+      >
+        <el-form-item label="编码" prop="code">
+          <el-input v-model="menu_form.code"></el-input>
+        </el-form-item>
+        <el-form-item label="类型" prop="menutype">
+          <el-select
+            v-model="menu_form.menutype"
+            placeholder="选择类型"
+            style="width: 100%"
+          >
+            <el-option label="功能" value="03"></el-option>
+            <el-option label="字段" value="04"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="功能名称" prop="selected_funs" v-if="menu_form.menutype === '03'">
+          <el-select v-model="selected_funs"
+          multiple
+          clearable
+          style="width:100%"
+          >
+            <el-option
+              v-for="(item,index) in funcodes"
+              :key="index"
+              :label="item.name"
+              :value="item.code">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="编辑字段" prop="edit_fields" v-if="menu_form.menutype === '04'">
+            
+        </el-form-item>
+        <el-form-item label="隐藏字段" prop="hide_fields" v-if="menu_form.menutype === '04'">
+            
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button type="danger" @click="dialog_fun_add = false"
+          >取消</el-button
+        >
+        <el-button type="primary" @click="save_fun_fields">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import BaseQuery from "@/components/QueryBar/BaseQuery";
 import MenuFn from "@/api/menu/index";
-import elementIcons from '@/views/icons/element-icons';
-import menutypes from './menutypes';
-import store from '@/store/index';
+import elementIcons from "@/views/icons/element-icons";
+import {menutypes, funcodes} from "./menutypes";
+import store from "@/store/index";
 export default {
   components: {
     BaseQuery,
+  },
+  filters: {
+    typename(typecode) {
+      let item = menutypes.filter((i) => i.code === typecode);
+      if (item) {
+        return item[0].name;
+      } else {
+        return "";
+      }
+    },
+    typecolor(typecode) {
+      let color = "primary";
+      switch (typecode) {
+        case "01":
+          color = "primary";
+          break;
+        case "02":
+          color = "warning";
+          break;
+        case "03":
+          color = "info";
+          break;
+        case "04":
+          color = "danger";
+          break;
+        default:
+          break;
+      }
+      return color;
+    },
   },
   data() {
     return {
       dialog_title: "",
       dialog_add: false,
       dialog_edit: false,
+      dialog_fun_add: false,
       list: [],
       elementIcons,
       menutypes,
+      funcodes:funcodes,
+      current_menuid: 0,
       queryform: {
         keyword: "",
         pid: 0,
       },
+      selected_funs:[],
+      hide_fields:[],
+      edit_fields:[],
       menu_form: {
-          pid:0,
-          code:'',
-          title:'',
-          icon:'',
-          path:'',
-          viewpath:'',
-          menutype:'',
-          seq:0,
-          status:1,
-          adduser:store.getters.userinfo.id
+        pid: 0,
+        code: "",
+        title: "",
+        icon: "",
+        path: "",
+        viewpath: "",
+        menutype: "",
+        seq: 0,
+        status: 1,
+        adduser: store.getters.userinfo.id,
       },
       menu_form_edit: {},
-      rules:{
-          code:[{required: true, message: "请输入编码", trigger: "blur"}],
-          title:[{required: true, message: "请输入名称", trigger: "blur"}],
-          path:[{required: true, message: "请输入路由路径", trigger: "blur"}],
-          viewpath:[{required: true, message: "请输入视图路径", trigger: "blur"}],
-          icon:[{required: true, message: "请选择图标", trigger: "blur"}]
+      rules: {
+        code: [{ required: true, message: "请输入编码", trigger: "blur" }],
+        title: [{ required: true, message: "请输入名称", trigger: "blur" }],
+        path: [{ required: true, message: "请输入路由路径", trigger: "blur" }],
+        viewpath: [
+          { required: true, message: "请输入视图路径", trigger: "blur" },
+        ],
+        menutype: [
+          {
+            required: true,
+            message: "请选择类型",
+            trigger: "change",
+          },
+        ],
       },
       recordcount: 0,
       pageindex: 1,
@@ -187,9 +335,10 @@ export default {
       resolve(row.children);
     },
     add_menu_handle() {
-        this.dialog_title='新增菜单'
-        this.menu_form.pid = 0
-        this.dialog_add = true
+      this.dialog_title = "新增菜单";
+      this.menu_form.pid = 0;
+      this.current_menuid = 0;
+      this.dialog_add = true;
     },
     handleCurrentChange(index) {
       this.pageindex = index;
@@ -199,31 +348,55 @@ export default {
       this.pagesize = value;
       this.getlist();
     },
-    save_menu(){
-       this.$refs['menu_form'].validate(v=>{
-           if(v){
-               MenuFn.add_menu(this.menu_form).then(res=>{
-                   this.$message.info(res.msg)
-                   if(res.code ===1)
-                   {
-                       this.getlist()
-                   }
-                   
-               })
-           }
-           else{
-               return false
-           }
-       }) 
+    save_menu() {
+      this.$refs["menu_form"].validate((v) => {
+        if (v) {
+          MenuFn.add_menu(this.menu_form).then((res) => {
+            this.$message.success(res.msg);
+            if (res.code === 1) {
+              this.dialog_add = false;
+              this.getlist();
+            }
+          });
+        } else {
+          return false;
+        }
+      });
     },
-    handlechange(val){
-        this.menu_form.seq = val
+    handlechange(val) {
+      this.menu_form.seq = val;
     },
-    add_sub_menu(row){
-        this.menu_form.pid = row.id
-        this.dialog_title = '新增' + row.title + '子菜单'
-        this.dialog_add = true
-    }
+    add_sub_menu(row) {
+      this.current_menuid = row.id;
+      this.menu_form.pid = row.id;
+      this.dialog_title = "新增" + row.title + "子菜单";
+      if (row.menutype === "02") {
+        this.dialog_fun_add = true;
+      }
+      if (row.menutype === "01") {
+        this.dialog_add = true;
+      }
+    },
+    dialog_open_handle() {
+      MenuFn.get_menucode({
+        id: this.current_menuid,
+      }).then((res) => {
+        this.menu_form.code = res.menucode;
+      });
+    },
+    save_fun_fields() {
+      this.$refs["form_funs"].validate(v=>{
+        if(v){
+          MenuFn.add_menu(this.menu_form).then((res) => {
+            this.$message.success(res.msg);
+            if (res.code === 1) {
+              this.dialog_fun_add = false;
+              this.getlist();
+            }
+          });
+        }
+      })
+    },
   },
 };
 </script>

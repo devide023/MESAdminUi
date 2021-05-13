@@ -2,6 +2,7 @@
   <div>
     <el-dialog
       title="组合查询"
+      v-el-drag-dialog
       :visible.sync="showdialog"
       @close="close_dialog_handle"
     >
@@ -109,7 +110,9 @@
 </template>
 
 <script>
+import elDragDialog from '@/directive/el-drag-dialog'
 export default {
+  directives: { elDragDialog },
   props: {
     isshow: {
       type: Boolean,

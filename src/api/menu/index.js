@@ -41,5 +41,12 @@ export default {
             method:'get',
             params:data
         })
+    },
+    get_menucode:(data)=>{
+        return request({
+            url:'/menu/menucode',
+            method:'get',
+            params:data
+        })
     }
 }

@@ -1,76 +1,161 @@
 <template>
-    <div>
-        <base-query @query="queryhandle"></base-query>
-        <el-table :data="list">
-          <el-table-column label="编号" prop="code"></el-table-column>
-          <el-table-column label="名称" prop="title"></el-table-column>
-          <el-table-column label="创建者" prop="adduser"></el-table-column>
-          <el-table-column label="创建日期">
-              <template slot-scope="scope">
-                {{scope.row.addtime | format_date}}
-              </template>
-          </el-table-column>
-          <el-table-column label="操作" width="50" fixed="right">
-            <template slot-scope="scope">
-              <el-dropdown>
-                <span class="el-dropdown-link">
-                  <i class="el-icon-setting" style="font-size: 16px"></i>
-                </span>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item @click.native="role_edit(scope.row)"
-                    >编辑</el-dropdown-item
-                  >
-                </el-dropdown-menu>
-              </el-dropdown>
-            </template>
-          </el-table-column>
-        </el-table>
-    </div>
+  <div>
+    <base-query @query="queryhandle">
+      <template #other>
+        <el-button
+          type="primary"
+          icon="el-icon-plus"
+          size="small"
+          @click="add_role"
+          >新增角色</el-button
+        >
+      </template>
+    </base-query>
+    <el-table :data="list">
+      <el-table-column label="编号" prop="code"></el-table-column>
+      <el-table-column label="名称" prop="title"></el-table-column>
+      <el-table-column label="创建者" prop="adduser"></el-table-column>
+      <el-table-column label="创建日期">
+        <template slot-scope="scope">
+          {{ scope.row.addtime | format_date }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="50" fixed="right">
+        <template slot-scope="scope">
+          <el-dropdown>
+            <span class="el-dropdown-link">
+              <i class="el-icon-setting" style="font-size: 16px"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="role_edit(scope.row)"
+                >编辑</el-dropdown-item
+              >
+            </el-dropdown-menu>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="role_menu(scope.row)"
+                >关联菜单</el-dropdown-item
+              >
+            </el-dropdown-menu>
+          </el-dropdown>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="pageindex"
+      :page-sizes="[20, 50, 100, 200]"
+      :page-size="pagesize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="recordcount"
+    >
+    </el-pagination>
+    <el-dialog :title="dialogtitle" :visible.sync="dialogVisible" top="10px">
+      <el-input v-model="role_form.title" placeholder=""></el-input>
+      <el-row :gutter="5">
+        <el-col :span="8">
+          <span>菜单权限</span>
+          <el-tree
+            :data="menutree"
+            :props="treeconfig"
+            >
+          </el-tree>
+        </el-col>
+        <el-col :span="8">
+          <span>功能权限</span>
+        </el-col>
+        <el-col :span="8">
+          <span>数据权限</span>
+        </el-col>
+      </el-row>
+
+      <div slot="footer">
+        <el-button type="error" @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="save_role_handle">确定</el-button>
+      </div>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
-import BaseQuery from '@/components/QueryBar/BaseQuery'
-import RoleFn from '@/api/role/index'
-    export default {
-        components: {
-          BaseQuery  
-        },
-        data() {
-            return {
-                list: [],
-                queryform:{
-                    keyword:''
-                },
-                recordcount: 0,
-                pageindex: 1,
-                pagesize: 20,
-            }
-        },
-        mounted() {
-           this.getlist();
-        },
-        methods: {
-            getlist() {
-                RoleFn.role_list({
-                    keyword: this.queryform.keyword,
-                    pageindex: this.pageindex,
-                    pagesize: this.pagesize,
-                }).then((result) => {
-                    this.list = result.list
-                    this.recordcount = result.resultcount
-                }).catch((err) => {
-                    this.$message(err)
-                });
-            },
-            queryhandle(data){
-                console.log(data)
-                this.queryform.keyword = data.keyword
-                this.getlist()
-            }
-        },
-    }
+import BaseQuery from "@/components/QueryBar/BaseQuery";
+import RoleFn from "@/api/role/index";
+import MenuFn from "@/api/menu/index";
+export default {
+  components: {
+    BaseQuery,
+  },
+  data() {
+    return {
+      dialogVisible: false,
+      dialogtitle: "",
+      list: [],
+      menutree: [],
+      funsdata:[],
+      queryform: {
+        keyword: "",
+      },
+      role_form: {
+        title: "",
+      },
+      treeconfig:{
+        children: 'children',
+        label: 'title'
+      },
+      recordcount: 0,
+      pageindex: 1,
+      pagesize: 20,
+    };
+  },
+  mounted() {
+    this.getlist();
+    this.getmenutree();
+  },
+  methods: {
+    getlist() {
+      RoleFn.role_list({
+        keyword: this.queryform.keyword,
+        pageindex: this.pageindex,
+        pagesize: this.pagesize,
+      })
+        .then((result) => {
+          this.list = result.list;
+          this.recordcount = result.resultcount;
+        })
+        .catch((err) => {
+          this.$message(err);
+        });
+    },
+    getmenutree() {
+      MenuFn.menu_tree({
+        pid: 0,
+        pageindex: 1,
+        pagesize: 65535,
+      }).then((res) => {
+        this.menutree = res.list;
+      });
+    },
+    queryhandle(data) {
+      console.log(data);
+      this.queryform.keyword = data.keyword;
+      this.getlist();
+    },
+    add_role() {
+      this.dialogtitle = "新增角色";
+      this.dialogVisible = true;
+    },
+    role_menu(row) {},
+    handleSizeChange(val) {
+      this.pagesize = val;
+    },
+    handleCurrentChange(index) {
+      this.pageindex = index;
+    },
+    save_role_handle() {},
+    node_click_handle() {},
+  },
+};
 </script>
 
 <style lang="scss" scoped>
-
 </style>
