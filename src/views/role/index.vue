@@ -7,14 +7,13 @@
           icon="el-icon-plus"
           size="small"
           @click="add_role"
-          >新增角色</el-button
-        >
+        >新增角色</el-button>
       </template>
     </base-query>
     <el-table :data="list">
-      <el-table-column label="编号" prop="code"></el-table-column>
-      <el-table-column label="名称" prop="title"></el-table-column>
-      <el-table-column label="创建者" prop="adduser"></el-table-column>
+      <el-table-column label="编号" prop="code" />
+      <el-table-column label="名称" prop="title" />
+      <el-table-column label="创建者" prop="adduser" />
       <el-table-column label="创建日期">
         <template slot-scope="scope">
           {{ scope.row.addtime | format_date }}
@@ -24,50 +23,67 @@
         <template slot-scope="scope">
           <el-dropdown>
             <span class="el-dropdown-link">
-              <i class="el-icon-setting" style="font-size: 16px"></i>
+              <i class="el-icon-setting" style="font-size: 16px" />
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="role_edit(scope.row)"
-                >编辑</el-dropdown-item
-              >
+              <el-dropdown-item @click.native="role_edit(scope.row)">编辑</el-dropdown-item>
             </el-dropdown-menu>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="role_menu(scope.row)"
-                >关联菜单</el-dropdown-item
-              >
+              <el-dropdown-item @click.native="role_menu(scope.row)">关联菜单</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
       </el-table-column>
     </el-table>
     <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
       :current-page="pageindex"
       :page-sizes="[20, 50, 100, 200]"
       :page-size="pagesize"
       layout="total, sizes, prev, pager, next, jumper"
       :total="recordcount"
-    >
-    </el-pagination>
+      background
+      style="text-align: right"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
     <el-dialog :title="dialogtitle" :visible.sync="dialogVisible" top="10px">
-      <el-input v-model="role_form.title" placeholder=""></el-input>
-      <el-row :gutter="5">
-        <el-col :span="8">
-          <span>菜单权限</span>
-          <el-tree
-            :data="menutree"
-            :props="treeconfig"
-            >
-          </el-tree>
-        </el-col>
-        <el-col :span="8">
-          <span>功能权限</span>
-        </el-col>
-        <el-col :span="8">
-          <span>数据权限</span>
-        </el-col>
-      </el-row>
+      <el-form
+        ref="role_form"
+        :model="role_form"
+        label-position="right"
+        size="small"
+        label-width="100px"
+      >
+        <el-form-item label="角色名称">
+          <el-input v-model="role_form.title" />
+        </el-form-item>
+        <el-form-item label="菜单及功能">
+          <el-tree :data="menutree" :props="treeconfig"
+                   show-checkbox
+                   node-key="id"
+          />
+        </el-form-item>
+        <el-form-item label="编辑字段">
+          <el-table
+            :data="fieds"
+            style="width: 100%"
+          >
+            <el-table-column
+              label="label"
+            />
+          </el-table>
+        </el-form-item>
+        <el-form-item label="隐藏字段">
+          <el-table
+            :data="fieds"
+          >
+            <el-table-column
+              prop="prop"
+              label="label"
+            />
+          </el-table>
+        </el-form-item>
+      </el-form>
 
       <div slot="footer">
         <el-button type="error" @click="dialogVisible = false">取消</el-button>
@@ -91,16 +107,19 @@ export default {
       dialogtitle: "",
       list: [],
       menutree: [],
-      funsdata:[],
+      funsdata: [],
+      fieds:[],
+      editfieds:[],
+      hidefieds:[],
       queryform: {
         keyword: "",
       },
       role_form: {
         title: "",
       },
-      treeconfig:{
-        children: 'children',
-        label: 'title'
+      treeconfig: {
+        children: "children",
+        label: "title",
       },
       recordcount: 0,
       pageindex: 1,
