@@ -48,5 +48,12 @@ export default {
             method:'get',
             params:data
         })
+    },
+    add_menu_funs:(data)=>{
+        return request({
+            url: '/menu/add_menufuns',
+            method: 'post',
+            data
+        })
     }
 }

@@ -7,8 +7,7 @@
           icon="el-icon-plus"
           size="small"
           @click="add_menu_handle"
-          >新增</el-button
-        >
+        >新增</el-button>
       </template>
     </base-query>
     <el-table
@@ -25,8 +24,8 @@
           }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="编码" prop="code"></el-table-column>
-      <el-table-column label="名称" prop="title"></el-table-column>
+      <el-table-column label="编码" prop="code" />
+      <el-table-column label="名称" prop="title" />
       <el-table-column label="类型">
         <template slot-scope="scope">
           <el-tag :type="scope.row.menutype | typecolor">{{
@@ -34,14 +33,14 @@
           }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="路由路径" prop="path"></el-table-column>
-      <el-table-column label="视图路径" prop="viewpath"></el-table-column>
+      <el-table-column label="路由路径" prop="path" />
+      <el-table-column label="视图路径" prop="viewpath" />
       <el-table-column label="图标">
         <template slot-scope="scope">
           <svg-icon :icon-class="scope.row.icon" />
         </template>
       </el-table-column>
-      <el-table-column label="操作员" prop="adduser"></el-table-column>
+      <el-table-column label="操作员" prop="adduser" />
       <el-table-column label="操作日期">
         <template slot-scope="scope">
           {{ scope.row.addtime | format_date }}
@@ -51,15 +50,12 @@
         <template slot-scope="scope">
           <el-dropdown>
             <span class="el-dropdown-link">
-              <i class="el-icon-setting" style="font-size: 16px"></i>
+              <i class="el-icon-setting" style="font-size: 16px" />
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="edit_menu(scope.row)"
-                >编辑</el-dropdown-item
-              >
-              <el-dropdown-item @click.native="add_sub_menu(scope.row)"
-                >子项</el-dropdown-item
-              >
+              <el-dropdown-item @click.native="edit_menu(scope.row)">编辑</el-dropdown-item>
+              <el-dropdown-item v-if="scope.row.menutype ==='01'" @click.native="add_sub_menu(scope.row)">子菜单</el-dropdown-item>
+              <el-dropdown-item v-if="scope.row.menutype ==='02'" @click.native="add_sub_menu(scope.row)">功能定义</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -70,12 +66,12 @@
       :current-page="pageindex"
       :page-size="pagesize"
       :page-sizes="[20, 50, 100, 200]"
-      @current-change="handleCurrentChange"
       layout="total, sizes, prev, pager, next"
-      @size-change="handleSizeChange"
       background
       style="text-align: right"
-    ></el-pagination>
+      @current-change="handleCurrentChange"
+      @size-change="handleSizeChange"
+    />
     <!--添加菜单表单-->
     <el-dialog
       :title="dialog_title"
@@ -84,21 +80,21 @@
       @open="dialog_open_handle"
     >
       <el-form
-        :model="menu_form"
         ref="menu_form"
+        :model="menu_form"
         :rules="rules"
         label-width="80px"
         label-position="right"
         size="small"
       >
         <el-form-item label="编码" prop="code">
-          <el-input v-model="menu_form.code" placeholder=""></el-input>
+          <el-input v-model="menu_form.code" placeholder="" />
         </el-form-item>
         <el-form-item label="名称" prop="title">
-          <el-input v-model="menu_form.title" placeholder=""></el-input>
+          <el-input v-model="menu_form.title" placeholder="" />
         </el-form-item>
         <el-form-item label="路由路径" prop="path">
-          <el-input v-model="menu_form.path" placeholder=""></el-input>
+          <el-input v-model="menu_form.path" placeholder="" />
         </el-form-item>
         <el-form-item label="菜单类型" prop="menutype">
           <el-select
@@ -111,11 +107,11 @@
               :key="index"
               :label="item.name"
               :value="item.code"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="视图路径" prop="viewpath">
-          <el-input v-model="menu_form.viewpath" placeholder=""></el-input>
+          <el-input v-model="menu_form.viewpath" placeholder="" />
         </el-form-item>
         <el-form-item label="图标" prop="icon">
           <el-select
@@ -130,9 +126,7 @@
               :label="item"
             >
               <span style="float: left">{{ item }}</span>
-              <span style="float: right"
-                ><svg-icon :icon-class="item"></svg-icon
-              ></span>
+              <span style="float: right"><svg-icon :icon-class="item" /></span>
             </el-option>
           </el-select>
         </el-form-item>
@@ -143,7 +137,7 @@
             :step="10"
             placeholder=""
             @change="handlechange"
-          ></el-input-number>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -152,11 +146,7 @@
       </div>
     </el-dialog>
     <!--添加页面功能、数据功能-->
-    <el-dialog
-      :title="dialog_title"
-      :visible.sync="dialog_fun_add"
-      @open="dialog_open_handle"
-    >
+    <el-dialog :title="dialog_title" :visible.sync="dialog_fun_add">
       <el-form
         ref="form_funs"
         :rules="rules"
@@ -165,44 +155,30 @@
         label-position="right"
         size="small"
       >
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="menu_form.code"></el-input>
-        </el-form-item>
-        <el-form-item label="类型" prop="menutype">
+        <el-form-item label="功能名称">
           <el-select
-            v-model="menu_form.menutype"
-            placeholder="选择类型"
+            v-model="menu_form.funs"
+            multiple
+            clearable
             style="width: 100%"
           >
-            <el-option label="功能" value="03"></el-option>
-            <el-option label="字段" value="04"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="功能名称" prop="selected_funs" v-if="menu_form.menutype === '03'">
-          <el-select v-model="selected_funs"
-          multiple
-          clearable
-          style="width:100%"
-          >
             <el-option
-              v-for="(item,index) in funcodes"
+              v-for="(item, index) in funcodes"
               :key="index"
               :label="item.name"
-              :value="item.code">
-            </el-option>
+              :value="item.code"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="编辑字段" prop="edit_fields" v-if="menu_form.menutype === '04'">
-            
-        </el-form-item>
-        <el-form-item label="隐藏字段" prop="hide_fields" v-if="menu_form.menutype === '04'">
-            
+        <el-form-item label="页面字段">
+          <el-input
+            v-model="menu_fields"
+            placeholder="逗号分隔的字段名"
+          />
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button type="danger" @click="dialog_fun_add = false"
-          >取消</el-button
-        >
+        <el-button type="danger" @click="dialog_fun_add = false">取消</el-button>
         <el-button type="primary" @click="save_fun_fields">确定</el-button>
       </div>
     </el-dialog>
@@ -213,7 +189,7 @@
 import BaseQuery from "@/components/QueryBar/BaseQuery";
 import MenuFn from "@/api/menu/index";
 import elementIcons from "@/views/icons/element-icons";
-import {menutypes, funcodes} from "./menutypes";
+import { menutypes, funcodes } from "./menutypes";
 import store from "@/store/index";
 export default {
   components: {
@@ -258,15 +234,13 @@ export default {
       list: [],
       elementIcons,
       menutypes,
-      funcodes:funcodes,
+      funcodes: funcodes,
       current_menuid: 0,
       queryform: {
         keyword: "",
         pid: 0,
       },
-      selected_funs:[],
-      hide_fields:[],
-      edit_fields:[],
+      menu_fields:'',
       menu_form: {
         pid: 0,
         code: "",
@@ -278,6 +252,8 @@ export default {
         seq: 0,
         status: 1,
         adduser: store.getters.userinfo.id,
+        funs:[],
+        fields:[]
       },
       menu_form_edit: {},
       rules: {
@@ -309,12 +285,10 @@ export default {
         pid: this.queryform.pid,
         pageindex: this.pageindex,
         pagesize: this.pagesize,
-      })
-        .then((result) => {
-          this.list = result.list;
-          this.recordcount = result.resultcount;
-        })
-        .catch((err) => {});
+      }).then((result) => {
+        this.list = result.list;
+        this.recordcount = result.resultcount;
+      });
     },
     queryhandle(data) {
       this.queryform.keyword = data.keyword;
@@ -369,11 +343,12 @@ export default {
     add_sub_menu(row) {
       this.current_menuid = row.id;
       this.menu_form.pid = row.id;
-      this.dialog_title = "新增" + row.title + "子菜单";
       if (row.menutype === "02") {
+      this.dialog_title = "定义页面功能、字段";
         this.dialog_fun_add = true;
       }
       if (row.menutype === "01") {
+      this.dialog_title = "新增" + row.title + "子菜单";
         this.dialog_add = true;
       }
     },
@@ -385,9 +360,10 @@ export default {
       });
     },
     save_fun_fields() {
-      this.$refs["form_funs"].validate(v=>{
-        if(v){
-          MenuFn.add_menu(this.menu_form).then((res) => {
+      this.$refs["form_funs"].validate((v) => {
+        if (v) {
+          this.menu_form.fields = this.menu_fields.split(",")
+          MenuFn.add_menu_funs(this.menu_form).then((res) => {
             this.$message.success(res.msg);
             if (res.code === 1) {
               this.dialog_fun_add = false;
@@ -395,7 +371,7 @@ export default {
             }
           });
         }
-      })
+      });
     },
   },
 };
