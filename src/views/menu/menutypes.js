@@ -1,2 +1,2 @@
-export const menutypes = [{ name: '菜单', code: '01' }, { name: '页面', code: '02' }, { name: '功能', code: '03' }, { name: '权限', code: '04' }]
+export const menutypes = [{ name: '菜单', code: '01' }, { name: '页面', code: '02' }, { name: '功能', code: '03' }, { name: '字段', code: '04' }]
 export const funcodes = [{ name: '添加', code: 'add' }, { name: '修改', code: 'edit' }, { name: '删除', code: 'delete' }, { name: '查询', code: 'query' }, { name: '导出', code: 'export' }, { name: '审核', code: 'audit' }]

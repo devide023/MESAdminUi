@@ -53,9 +53,9 @@
               <i class="el-icon-setting" style="font-size: 16px" />
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="edit_menu(scope.row)">编辑</el-dropdown-item>
-              <el-dropdown-item v-if="scope.row.menutype ==='01'" @click.native="add_sub_menu(scope.row)">子菜单</el-dropdown-item>
-              <el-dropdown-item v-if="scope.row.menutype ==='02'" @click.native="add_sub_menu(scope.row)">功能定义</el-dropdown-item>
+              <el-dropdown-item @click.native="edit_menu(scope.row)"><span class="el-icon-edit">编辑</span></el-dropdown-item>
+              <el-dropdown-item v-if="scope.row.menutype ==='01'" @click.native="add_sub_menu(scope.row)"><span class="el-icon-circle-plus-outline">子菜单</span></el-dropdown-item>
+              <el-dropdown-item v-if="scope.row.menutype ==='02'" @click.native="add_sub_menu(scope.row)"><span class="el-icon-plus">功能字段</span></el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>

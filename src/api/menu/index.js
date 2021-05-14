@@ -55,5 +55,11 @@ export default {
             method: 'post',
             data
         })
+    },
+    menu_permission_tree:()=>{
+        return request({
+            url: '/menu/permission_tree',
+            method: 'get'
+        })
     }
 }

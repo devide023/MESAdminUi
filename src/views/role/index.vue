@@ -7,7 +7,8 @@
           icon="el-icon-plus"
           size="small"
           @click="add_role"
-        >新增角色</el-button>
+          >新增角色</el-button
+        >
       </template>
     </base-query>
     <el-table :data="list">
@@ -26,10 +27,14 @@
               <i class="el-icon-setting" style="font-size: 16px" />
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="role_edit(scope.row)">编辑</el-dropdown-item>
+              <el-dropdown-item @click.native="role_edit(scope.row)"
+                >编辑</el-dropdown-item
+              >
             </el-dropdown-menu>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="role_menu(scope.row)">关联菜单</el-dropdown-item>
+              <el-dropdown-item @click.native="role_menu(scope.row)"
+                >关联菜单</el-dropdown-item
+              >
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -50,38 +55,22 @@
       <el-form
         ref="role_form"
         :model="role_form"
+        :rules="rules"
         label-position="right"
         size="small"
         label-width="100px"
       >
-        <el-form-item label="角色名称">
+        <el-form-item label="角色名称" prop="title">
           <el-input v-model="role_form.title" />
         </el-form-item>
-        <el-form-item label="菜单及功能">
-          <el-tree :data="menutree" :props="treeconfig"
-                   show-checkbox
-                   node-key="id"
+        <el-form-item label="功能权限">
+          <el-tree
+            :data="permissiontree"
+            :props="treeconfig"
+            ref="permission_tree"
+            show-checkbox
+            node-key="id"
           />
-        </el-form-item>
-        <el-form-item label="编辑字段">
-          <el-table
-            :data="fieds"
-            style="width: 100%"
-          >
-            <el-table-column
-              label="label"
-            />
-          </el-table>
-        </el-form-item>
-        <el-form-item label="隐藏字段">
-          <el-table
-            :data="fieds"
-          >
-            <el-table-column
-              prop="prop"
-              label="label"
-            />
-          </el-table>
         </el-form-item>
       </el-form>
 
@@ -97,6 +86,7 @@
 import BaseQuery from "@/components/QueryBar/BaseQuery";
 import RoleFn from "@/api/role/index";
 import MenuFn from "@/api/menu/index";
+import store from '@/store/index';
 export default {
   components: {
     BaseQuery,
@@ -106,20 +96,26 @@ export default {
       dialogVisible: false,
       dialogtitle: "",
       list: [],
-      menutree: [],
-      funsdata: [],
-      fieds:[],
-      editfieds:[],
-      hidefieds:[],
+      permissiontree: [],
+      fieds: [],
       queryform: {
         keyword: "",
       },
       role_form: {
         title: "",
+        menuids: [],
+        funs: [],
+        editfieds: [],
+        hidefieds: [],
+        adduser:store.getters.userinfo.id,
+        status:1
       },
       treeconfig: {
         children: "children",
         label: "title",
+      },
+      rules: {
+        title: [{ required: true, message: "请输入角色名称", trigger: "blur" }],
       },
       recordcount: 0,
       pageindex: 1,
@@ -128,7 +124,10 @@ export default {
   },
   mounted() {
     this.getlist();
-    this.getmenutree();
+    this.getpermissiontree();
+  },
+  computed: {
+    
   },
   methods: {
     getlist() {
@@ -145,13 +144,9 @@ export default {
           this.$message(err);
         });
     },
-    getmenutree() {
-      MenuFn.menu_tree({
-        pid: 0,
-        pageindex: 1,
-        pagesize: 65535,
-      }).then((res) => {
-        this.menutree = res.list;
+    getpermissiontree() {
+      MenuFn.menu_permission_tree().then((res) => {
+        this.permissiontree = res.list;
       });
     },
     queryhandle(data) {
@@ -170,7 +165,61 @@ export default {
     handleCurrentChange(index) {
       this.pageindex = index;
     },
-    save_role_handle() {},
+    save_role_handle() {
+      this.$refs.role_form.validate((v) => {
+        if (v) {
+          let cknodes = this.$refs.permission_tree.getCheckedNodes(false, true);
+          let funs = [];
+          let edits = [];
+          let hides = [];
+          let menuids = [];
+          let exitid = [];
+          cknodes.forEach((i) => {
+            menuids.push(i.id);
+            switch (i.title) {
+              case "页面功能":
+                exitid.push(i.id);
+                let sub1 = cknodes.filter((t) => t.pid === i.id);
+                sub1.forEach((t) => {
+                  funs.push(t.title);
+                  exitid.push(t.id);
+                });
+                break;
+              case "编辑字段":
+                exitid.push(i.id);
+                let sub2 = cknodes.filter((t) => t.pid === i.id);
+                sub2.forEach((t) => {
+                  edits.push(t.title);
+                  exitid.push(t.id);
+                });
+                break;
+              case "隐藏字段":
+                exitid.push(i.id);
+                let sub3 = cknodes.filter((t) => t.pid === i.id);
+                sub3.forEach((t) => {
+                  hides.push(t.title);
+                  exitid.push(t.id);
+                });
+                break;
+              default:
+                break;
+            }
+          });
+          var mids_ok = menuids.filter((i) => !exitid.some((j) => j == i))
+          this.role_form.menuids = mids_ok
+          this.role_form.funs = funs
+          this.role_form.editfieds = edits
+          this.role_form.hidefieds = hides
+          RoleFn.add_role(this.role_form).then((res) => {
+            this.$message.success(res.msg);
+            if(res.code === 1)
+            {
+
+            }
+          });
+        }
+      });
+    },
     node_click_handle() {},
   },
 };
