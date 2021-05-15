@@ -12,9 +12,14 @@
       </template>
     </base-query>
     <el-table :data="list">
+      <el-table-column label="状态">
+        <template slot-scope="scope">
+          <el-tag :type="scope.row.status|tagtype">{{ scope.row.status|statusname}}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="编号" prop="code" />
       <el-table-column label="名称" prop="title" />
-      <el-table-column label="创建者" prop="adduser" />
+      <el-table-column label="创建者" prop="addusername" />
       <el-table-column label="创建日期">
         <template slot-scope="scope">
           {{ scope.row.addtime | format_date }}
@@ -44,7 +49,7 @@
       :current-page="pageindex"
       :page-sizes="[20, 50, 100, 200]"
       :page-size="pagesize"
-      layout="total, sizes, prev, pager, next, jumper"
+      layout="total, sizes, prev, pager, next"
       :total="recordcount"
       background
       style="text-align: right"
@@ -65,17 +70,19 @@
         </el-form-item>
         <el-form-item label="功能权限">
           <el-tree
+            ref="permission_tree"
             :data="permissiontree"
             :props="treeconfig"
-            ref="permission_tree"
             show-checkbox
+            check-strictly
+            accordion
             node-key="id"
           />
         </el-form-item>
       </el-form>
 
       <div slot="footer">
-        <el-button type="error" @click="dialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="save_role_handle">确定</el-button>
       </div>
     </el-dialog>
@@ -86,7 +93,7 @@
 import BaseQuery from "@/components/QueryBar/BaseQuery";
 import RoleFn from "@/api/role/index";
 import MenuFn from "@/api/menu/index";
-import store from '@/store/index';
+import store from "@/store/index";
 export default {
   components: {
     BaseQuery,
@@ -103,12 +110,10 @@ export default {
       },
       role_form: {
         title: "",
-        menuids: [],
-        funs: [],
-        editfieds: [],
-        hidefieds: [],
-        adduser:store.getters.userinfo.id,
-        status:1
+        code:'',
+        menu_nodes:[],
+        adduser: store.getters.userinfo.id,
+        status: 1,
       },
       treeconfig: {
         children: "children",
@@ -122,12 +127,10 @@ export default {
       pagesize: 20,
     };
   },
+  computed: {},
   mounted() {
     this.getlist();
     this.getpermissiontree();
-  },
-  computed: {
-    
   },
   methods: {
     getlist() {
@@ -169,54 +172,10 @@ export default {
       this.$refs.role_form.validate((v) => {
         if (v) {
           let cknodes = this.$refs.permission_tree.getCheckedNodes(false, true);
-          let funs = [];
-          let edits = [];
-          let hides = [];
-          let menuids = [];
-          let exitid = [];
-          cknodes.forEach((i) => {
-            menuids.push(i.id);
-            switch (i.title) {
-              case "页面功能":
-                exitid.push(i.id);
-                let sub1 = cknodes.filter((t) => t.pid === i.id);
-                sub1.forEach((t) => {
-                  funs.push(t.title);
-                  exitid.push(t.id);
-                });
-                break;
-              case "编辑字段":
-                exitid.push(i.id);
-                let sub2 = cknodes.filter((t) => t.pid === i.id);
-                sub2.forEach((t) => {
-                  edits.push(t.title);
-                  exitid.push(t.id);
-                });
-                break;
-              case "隐藏字段":
-                exitid.push(i.id);
-                let sub3 = cknodes.filter((t) => t.pid === i.id);
-                sub3.forEach((t) => {
-                  hides.push(t.title);
-                  exitid.push(t.id);
-                });
-                break;
-              default:
-                break;
-            }
-          });
-          var mids_ok = menuids.filter((i) => !exitid.some((j) => j == i))
-          this.role_form.menuids = mids_ok
-          this.role_form.funs = funs
-          this.role_form.editfieds = edits
-          this.role_form.hidefieds = hides
-          RoleFn.add_role(this.role_form).then((res) => {
-            this.$message.success(res.msg);
-            if(res.code === 1)
-            {
+          this.role_form.menu_nodes = cknodes
+          RoleFn.add_role(this.role_form).then(res=>{
 
-            }
-          });
+          })
         }
       });
     },

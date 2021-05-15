@@ -51,7 +51,7 @@ export default {
     },
     add_menu_funs:(data)=>{
         return request({
-            url: '/menu/add_menufuns',
+            url: '/menu/add_funs_field',
             method: 'post',
             data
         })

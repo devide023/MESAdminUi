@@ -13,14 +13,12 @@
     <el-table
       :data="list"
       row-key="id"
-      lazy
-      :load="get_submenu"
       :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
     >
       <el-table-column label="状态">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">{{
-            scope.row.status === 1 ? "启用" : "禁用"
+          <el-tag :type="scope.row.status|tagtype">{{
+            scope.row.status |statusname
           }}</el-tag>
         </template>
       </el-table-column>
@@ -37,10 +35,10 @@
       <el-table-column label="视图路径" prop="viewpath" />
       <el-table-column label="图标">
         <template slot-scope="scope">
-          <svg-icon :icon-class="scope.row.icon" />
+          <svg-icon :icon-class="scope.row.icon||''" />
         </template>
       </el-table-column>
-      <el-table-column label="操作员" prop="adduser" />
+      <el-table-column label="操作员" prop="addusername" />
       <el-table-column label="操作日期">
         <template slot-scope="scope">
           {{ scope.row.addtime | format_date }}
@@ -54,8 +52,14 @@
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item @click.native="edit_menu(scope.row)"><span class="el-icon-edit">编辑</span></el-dropdown-item>
-              <el-dropdown-item v-if="scope.row.menutype ==='01'" @click.native="add_sub_menu(scope.row)"><span class="el-icon-circle-plus-outline">子菜单</span></el-dropdown-item>
-              <el-dropdown-item v-if="scope.row.menutype ==='02'" @click.native="add_sub_menu(scope.row)"><span class="el-icon-plus">功能字段</span></el-dropdown-item>
+              <el-dropdown-item
+                v-if="scope.row.menutype === '01'"
+                @click.native="add_sub_menu(scope.row)"
+              ><span class="el-icon-circle-plus-outline">子菜单</span></el-dropdown-item>
+              <el-dropdown-item
+                v-if="scope.row.menutype === '02'"
+                @click.native="add_sub_menu(scope.row)"
+              ><span class="el-icon-plus">功能字段</span></el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -171,10 +175,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="页面字段">
-          <el-input
-            v-model="menu_fields"
-            placeholder="逗号分隔的字段名"
-          />
+          <el-input v-model="menu_fields" placeholder="逗号分隔的字段名" />
         </el-form-item>
       </el-form>
       <div slot="footer">
@@ -240,7 +241,7 @@ export default {
         keyword: "",
         pid: 0,
       },
-      menu_fields:'',
+      menu_fields: "",
       menu_form: {
         pid: 0,
         code: "",
@@ -252,8 +253,8 @@ export default {
         seq: 0,
         status: 1,
         adduser: store.getters.userinfo.id,
-        funs:[],
-        fields:[]
+        funs: [],
+        fields: [],
       },
       menu_form_edit: {},
       rules: {
@@ -281,8 +282,9 @@ export default {
   },
   methods: {
     getlist() {
-      MenuFn.menu_sub({
+      MenuFn.menu_tree({
         pid: this.queryform.pid,
+        keyword:this.queryform.keyword,
         pageindex: this.pageindex,
         pagesize: this.pagesize,
       }).then((result) => {
@@ -292,6 +294,7 @@ export default {
     },
     queryhandle(data) {
       this.queryform.keyword = data.keyword;
+      this.getlist()
     },
     edit_menu(row) {
       this.menu_form_edit = row;
@@ -344,11 +347,11 @@ export default {
       this.current_menuid = row.id;
       this.menu_form.pid = row.id;
       if (row.menutype === "02") {
-      this.dialog_title = "定义页面功能、字段";
+        this.dialog_title = "定义页面功能、字段";
         this.dialog_fun_add = true;
       }
       if (row.menutype === "01") {
-      this.dialog_title = "新增" + row.title + "子菜单";
+        this.dialog_title = "新增" + row.title + "子菜单";
         this.dialog_add = true;
       }
     },
@@ -362,7 +365,7 @@ export default {
     save_fun_fields() {
       this.$refs["form_funs"].validate((v) => {
         if (v) {
-          this.menu_form.fields = this.menu_fields.split(",")
+          this.menu_form.fields = this.menu_fields.split(",");
           MenuFn.add_menu_funs(this.menu_form).then((res) => {
             this.$message.success(res.msg);
             if (res.code === 1) {

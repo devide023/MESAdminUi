@@ -66,3 +66,30 @@ export function toThousandFilter(num) {
 export function uppercaseFirst(string) {
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
+
+export function statusname(status){
+  let statusname
+  switch (status) {
+    case 1:
+      statusname='启用'
+      break;
+    case 0:
+      statusname='禁用'
+      break;
+  }
+  return statusname
+}
+
+export function tagtype(status)
+{
+  let tagname
+  switch (status) {
+    case 1:
+      tagname='success'
+      break;
+    case 0:
+      tagname='danger'
+      break;
+  }
+  return tagname
+}
