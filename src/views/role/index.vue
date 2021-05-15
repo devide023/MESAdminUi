@@ -14,7 +14,9 @@
     <el-table :data="list">
       <el-table-column label="状态">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.status|tagtype">{{ scope.row.status|statusname}}</el-tag>
+          <el-tag :type="scope.row.status | tagtype">{{
+            scope.row.status | statusname
+          }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="编号" prop="code" />
@@ -110,8 +112,8 @@ export default {
       },
       role_form: {
         title: "",
-        code:'',
-        menu_nodes:[],
+        code: "",
+        menu_nodes: [],
         adduser: store.getters.userinfo.id,
         status: 1,
       },
@@ -172,10 +174,13 @@ export default {
       this.$refs.role_form.validate((v) => {
         if (v) {
           let cknodes = this.$refs.permission_tree.getCheckedNodes(false, true);
-          this.role_form.menu_nodes = cknodes
-          RoleFn.add_role(this.role_form).then(res=>{
-
-          })
+          this.role_form.menu_nodes = cknodes;
+          RoleFn.add_role(this.role_form).then((res) => {
+            this.$message(res.msg);
+            if (res.code === 1) {
+              this.dialogVisible = false;
+            }
+          });
         }
       });
     },
