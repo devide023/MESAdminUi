@@ -7,8 +7,7 @@
           icon="el-icon-plus"
           size="small"
           @click="add_role"
-          >新增角色</el-button
-        >
+        >新增角色</el-button>
       </template>
     </base-query>
     <el-table :data="list">
@@ -34,14 +33,10 @@
               <i class="el-icon-setting" style="font-size: 16px" />
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="role_edit(scope.row)"
-                >编辑</el-dropdown-item
-              >
+              <el-dropdown-item @click.native="role_edit(scope.row)">编辑</el-dropdown-item>
             </el-dropdown-menu>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="role_menu(scope.row)"
-                >关联菜单</el-dropdown-item
-              >
+              <el-dropdown-item @click.native="role_menu(scope.row)">关联菜单</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -106,7 +101,6 @@ export default {
       dialogtitle: "",
       list: [],
       permissiontree: [],
-      fieds: [],
       queryform: {
         keyword: "",
       },
@@ -178,7 +172,13 @@ export default {
           RoleFn.add_role(this.role_form).then((res) => {
             this.$message(res.msg);
             if (res.code === 1) {
+              this.getlist()
               this.dialogVisible = false;
+              this.$nextTick(() => {
+                this.role_menu.menu_nodes = [];
+                this.$refs.role_form.resetFields()
+                this.$refs.permission_tree.setCheckedKeys([]);
+              });
             }
           });
         }

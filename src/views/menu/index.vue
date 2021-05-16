@@ -150,7 +150,7 @@
       </div>
     </el-dialog>
     <!--添加页面功能、数据功能-->
-    <el-dialog :title="dialog_title" :visible.sync="dialog_fun_add">
+    <el-dialog :title="dialog_title" :visible.sync="dialog_fun_add" top="10px">
       <el-form
         ref="form_funs"
         :rules="rules"
@@ -174,8 +174,12 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="页面字段">
-          <el-input v-model="menu_fields" placeholder="逗号分隔的字段名" />
+        <el-form-item v-for="(i,index) in menu_form.fields" :key="index" :label="'字段'+(index+1)">
+          <el-input :key="(index+2)*100" v-model="i.name" placeholder="名称" style="width:45%" />
+          <el-input :key="(index+1)*(index+2)" v-model="i.code" placeholder="值" style="width:45%" />
+          <div style="width:5%;float:right;"><el-button v-if="index==0" type="text" @click="add_field_handle">增加</el-button>
+            <el-button v-else type="text" @click="remove_field_handle(index)">移除</el-button>
+          </div>
         </el-form-item>
       </el-form>
       <div slot="footer">
@@ -241,7 +245,6 @@ export default {
         keyword: "",
         pid: 0,
       },
-      menu_fields: "",
       menu_form: {
         pid: 0,
         code: "",
@@ -279,6 +282,10 @@ export default {
   },
   mounted() {
     this.getlist();
+    this.menu_form.fields.push({
+      name:'',
+      code:''
+    })
   },
   methods: {
     getlist() {
@@ -365,17 +372,40 @@ export default {
     save_fun_fields() {
       this.$refs["form_funs"].validate((v) => {
         if (v) {
-          this.menu_form.fields = this.menu_fields.split(",");
-          MenuFn.add_menu_funs(this.menu_form).then((res) => {
+          let funobj=[]
+          this.menu_form.funs.forEach(i=>{
+            this.funcodes.filter(j=>{
+              return j.code === i
+            }).forEach(item=>{
+              funobj.push(item)
+            })
+          })
+          MenuFn.add_menu_funs({
+            funs:funobj,
+            fields:this.menu_form.fields,
+            pid:this.menu_form.pid,
+            adduser:this.menu_form.adduser
+          }).then((res) => {
             this.$message.success(res.msg);
             if (res.code === 1) {
               this.dialog_fun_add = false;
+              this.menu_form.funs=[]
+              this.menu_form.fields=[]
               this.getlist();
             }
           });
         }
       });
     },
+    add_field_handle(){
+      this.menu_form.fields.push({
+        name:'',
+        code:''
+      })
+    },
+    remove_field_handle(index){
+      this.menu_form.fields.splice(index,1)
+    }
   },
 };
 </script>
