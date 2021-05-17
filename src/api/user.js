@@ -16,6 +16,14 @@ export function edit_user_info(data){
   })
 }
 
+export function user_entity(userid){
+  return request({
+    url: '/user/find',
+    method: 'get',
+    params:{id:userid}
+  })
+}
+
 export function login(data) {
   return request({
     url: '/login/checklogin',
@@ -29,6 +37,14 @@ export function getInfo(token) {
     url: '/user/info',
     method: 'get',
     params: { token }
+  })
+}
+
+export function reset_userpwd(data){
+  return request({
+    url: '/user/resetpwd',
+    method: 'post',
+    data
   })
 }
 

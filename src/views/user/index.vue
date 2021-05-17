@@ -15,56 +15,70 @@
         @click="queryhandle"
         >查询</el-button
       >
-      <el-button type="warning" @click="dialog_comquery=true" size="small">组合查询</el-button>
+      <el-button type="warning" @click="dialog_comquery = true" size="small"
+        >组合查询</el-button
+      >
       <el-button
         type="primary"
         size="small"
         icon="el-icon-plus"
-        v-fun="{code:'add'}"
+        v-fun="{ code: 'add' }"
         @click="show_user_dialog"
         >新增</el-button
       >
     </div>
-    <el-table :data="list" stripe 
-    :border="true" style="width: 100%"
-    @cell-click='cell_click_handle'
-    @cell-mouse-leave='mouse_out_handle'
-    >
+    <el-table :data="list" stripe border row-key="id" style="width: 100%">
+      <el-table-column
+        type="selection"
+        size="mini"
+        @selection-change="handleSelectionChange"
+        >
+      </el-table-column>
       <el-table-column prop="id" label="UID" width="100"> </el-table-column>
       <el-table-column label="状态" width="100">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.status|tagtype">{{
-            scope.row.status |statusname
+          <el-tag :type="scope.row.status | tagtype">{{
+            scope.row.status | statusname
           }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="code" column-key="code" label="编号" v-hide="{code:'code'}" width="100">
+      <el-table-column
+        prop="code"
+        column-key="code"
+        label="编号"
+        v-hide="{ code: 'code' }"
+        width="100"
+      >
         <template slot-scope="scope">
-          <template v-if="scope.row.edit && curcolname==='code' && editfields.filter(i=>i===curcolname).length>0 ">
+          <template v-if="scope.row.edit">
             <el-input v-model="scope.row.code" ref="code"></el-input>
           </template>
-          <span v-else>{{scope.row.code}}</span>
+          <span v-else>{{ scope.row.code }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="姓名" width="150" column-key="name" v-hide="{code:'name'}">
+      <el-table-column
+        label="姓名"
+        width="150"
+        column-key="name"
+        v-hide="{ code: 'name' }"
+      >
         <template slot-scope="scope">
-          <template v-if="scope.row.edit && curcolname==='name' && editfields.filter(i=>i===curcolname).length>0">
-            <el-input v-model="scope.row.name" ref="name"
-            @blur="cell_blur_handle(scope.row)"
-            ></el-input>
+          <template v-if="scope.row.edit">
+            <el-input v-model="scope.row.name" ref="name"></el-input>
           </template>
-          <span v-else>{{scope.row.name}}</span>
+          <span v-else>{{ scope.row.name }}</span>
         </template>
       </el-table-column>
       <el-table-column label="角色" column-key="role">
         <template slot-scope="scope">
-          <template v-if="scope.row.edit && curcolname==='role'">
-            <el-select v-model="roleids">
+          <template v-if="scope.row.edit">
+            <el-select v-model="scope.row.roleids" multiple style="width: 100%">
               <el-option
                 v-for="item in rolelist"
                 :key="item.id"
                 :label="item.title"
-                :value="item.id">
+                :value="item.id"
+              >
               </el-option>
             </el-select>
           </template>
@@ -78,8 +92,20 @@
               <i class="el-icon-setting" style="font-size: 16px"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="user_edit(scope.row)"
+              <el-dropdown-item
+                v-if="!scope.row.edit"
+                @click.native="user_edit(scope.row)"
                 >编辑</el-dropdown-item
+              >
+              <el-dropdown-item
+                v-if="scope.row.edit"
+                @click.native="submit_edit(scope.row)"
+                >提交</el-dropdown-item
+              >
+              <el-dropdown-item
+                v-if="scope.row.edit"
+                @click.native="cancel_edit(scope.row)"
+                >取消</el-dropdown-item
               >
               <el-dropdown-item @click.native="change_pwd(scope.row)"
                 >改密</el-dropdown-item
@@ -186,22 +212,43 @@
         <el-button type="primary" @click="submit_user_edit">确定</el-button>
       </div>
     </el-dialog>
-    <com-query :isshow="dialog_comquery" 
-    :collist="collist" 
-    @query="com_query_handle"
-    @close="query_close_handle"
+    <com-query
+      :isshow="dialog_comquery"
+      :collist="collist"
+      @query="com_query_handle"
+      @close="query_close_handle"
     ></com-query>
+    <el-dialog
+      title="重置密码"
+      :visible.sync="dialogVisible">
+      <el-form :model="pwd_form"
+      ref="pwdform"
+      label-width="80px"
+      label-position="right"
+      size="small"
+      >
+        <el-form-item label="密码">
+          <el-input type="password" v-model="pwd_form.pwd"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button type="danger" @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="change_pwd_handle">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { userlist, save_user_info, edit_user_info } from "@/api/user";
+import { userlist, save_user_info, edit_user_info, reset_userpwd } from "@/api/user";
+import {deepClone} from '@/utils/index';
 import RoleFn from "@/api/role/index";
-import ComQuery from '@/components/QueryBar/ComQuery';
-import router from '@/router/index';
+import ComQuery from "@/components/QueryBar/ComQuery";
+import router from "@/router/index";
+import store from '@/store/index';
 export default {
   components: {
-    ComQuery
+    ComQuery,
   },
   data() {
     return {
@@ -210,30 +257,35 @@ export default {
       dialog_user: false,
       dialog_user_edit: false,
       dialog_title: "",
-      dialog_comquery:false,
+      dialog_comquery: false,
+      dialogVisible:false,
       rolelist: [],
-      roleids:[],
-      editfields:[],
-      curcolname:'',
-      collist:[
-        {label:'姓名',value:'ta.name'},
-        {label:'编号',value:'ta.code'},
+      roleids: [],
+      editfields: [],
+      currowobj: {},
+      collist: [
+        { label: "姓名", value: "ta.name" },
+        { label: "编号", value: "ta.code" },
       ],
       queryform: {
         name: "",
         code: "",
-        queryexp:[]
+        queryexp: [],
       },
       user_form: {
         code: "",
         name: "",
         pwd: "",
         roleids: [],
+        adduser:store.getters.userinfo.id
       },
       user_form_edit: {
         roleids: [],
       },
-      user_role_form: {},
+      pwd_form: {
+        id:0,
+        pwd:''
+      },
       rules: {
         code: [{ required: true, message: "请输入用户编码", trigger: "blur" }],
         name: [{ required: true, message: "请输入用户名", trigger: "blur" }],
@@ -255,23 +307,28 @@ export default {
   mounted() {
     this.get_userlist();
     this.get_rolelist();
-    this.editfields= router.currentRoute.meta.editfields
+    this.editfields = router.currentRoute.meta.editfields;
   },
   methods: {
     get_userlist() {
       userlist({
         keyword: this.queryform.keyword,
-        queryexp:this.queryform.queryexp,
+        queryexp: this.queryform.queryexp,
         pageindex: this.pageindex,
         pagesize: this.pagesize,
       }).then((res) => {
         console.log(res);
         this.recordcount = res.resultcount;
-        res.list.map(i=>{
-          this.$set(i, 'edit', false)
-          i.originalname = i.name
-          return i
-        })
+        res.list.map((i) => {
+          this.$set(i, "edit", false);
+          let temp = [];
+          i.roles.forEach((j) => {
+            temp.push(j.id);
+          });
+          this.$set(i, "roleids", temp);
+          i.originalname = i.name;
+          return i;
+        });
         this.list = res.list;
       });
     },
@@ -282,16 +339,44 @@ export default {
       this.dialog_userrole = true;
     },
     user_edit(row) {
-      console.log(row);
-      this.dialog_title = "编辑用户";
-      this.user_form_edit = row;
-      let temproleids = [];
-      row.roles.forEach((i) => temproleids.push(i.id));
-      this.user_form_edit.roleids = temproleids;
-      this.dialog_user_edit = true;
+      let isedit = this.list.filter(i=>i.edit).length
+     if(isedit){
+       this.$message.error('行处于编辑状态,请完成行编辑')
+     }else{
+     this.currowobj = deepClone(row)
+      row.edit = true;}
+    },
+    cancel_edit(row){
+      let pos = this.list.findIndex(t=>t.id == row.id)
+      let rowdata = deepClone(this.currowobj);
+      this.$set(rowdata);
+      this.list.splice(pos,1,rowdata);
+    },
+    submit_edit(row) {
+      edit_user_info(row).then((res) => {
+        this.$message(res.msg);
+        if (res.code === 1) {
+          row.roles=[]
+          row.roleids.forEach((i) => {
+            let temp = this.rolelist.filter((t) => t.id === i)[0];
+            row.roles.push(temp)
+          });
+          row.edit = false;
+        }
+      });
     },
     change_pwd(row) {
-      console.log(row);
+      this.dialogVisible=true
+      this.pwd_form.id = row.id
+    },
+    change_pwd_handle(){
+      reset_userpwd(this.pwd_form).then(res=>{
+        this.$message.success(res.msg)
+        if(res.code === 1){
+          this.$refs.pwdform.resetFields()
+          this.dialogVisible = false
+        }
+      })
     },
     save_user() {
       this.$refs["user_form"].validate((v) => {
@@ -351,24 +436,16 @@ export default {
       this.user_form.id = 0;
       this.dialog_user = true;
     },
-    cell_click_handle(row, column, cell, event){
-      this.curcolname = column.columnKey
-      row.edit = true
+    com_query_handle(data) {
+      console.log(data);
+      this.queryform.queryexp = data.list;
+      this.get_userlist();
     },
-    cell_blur_handle(row){
-      console.log('submit data')
+    query_close_handle(data) {
+      this.dialog_comquery = data;
     },
-    com_query_handle(data){
-      console.log(data)
-      this.queryform.queryexp = data.list
-      this.get_userlist()
-    },
-    query_close_handle(data){
-      this.dialog_comquery = data
-    },
-    mouse_out_handle(row, column, cell, event){
-      row.edit = false
-      this.curcolname=''
+    handleSelectionChange(selection){
+      conso.log(selection)
     }
   },
 };
