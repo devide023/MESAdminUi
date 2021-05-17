@@ -27,12 +27,16 @@
         >新增</el-button
       >
     </div>
-    <el-table :data="list" stripe border row-key="id" style="width: 100%">
-      <el-table-column
-        type="selection"
-        size="mini"
-        @selection-change="handleSelectionChange"
-        >
+    <el-table
+      :data="list"
+      ref="table_user"
+      stripe
+      border
+      row-key="id"
+      size="mini"
+      style="width: 100%"
+    >
+      <el-table-column type="selection" @select="handleSelect">
       </el-table-column>
       <el-table-column prop="id" label="UID" width="100"> </el-table-column>
       <el-table-column label="状态" width="100">
@@ -218,14 +222,13 @@
       @query="com_query_handle"
       @close="query_close_handle"
     ></com-query>
-    <el-dialog
-      title="重置密码"
-      :visible.sync="dialogVisible">
-      <el-form :model="pwd_form"
-      ref="pwdform"
-      label-width="80px"
-      label-position="right"
-      size="small"
+    <el-dialog title="重置密码" :visible.sync="dialogVisible">
+      <el-form
+        :model="pwd_form"
+        ref="pwdform"
+        label-width="80px"
+        label-position="right"
+        size="small"
       >
         <el-form-item label="密码">
           <el-input type="password" v-model="pwd_form.pwd"></el-input>
@@ -240,12 +243,17 @@
 </template>
 
 <script>
-import { userlist, save_user_info, edit_user_info, reset_userpwd } from "@/api/user";
-import {deepClone} from '@/utils/index';
+import {
+  userlist,
+  save_user_info,
+  edit_user_info,
+  reset_userpwd,
+} from "@/api/user";
+import { deepClone } from "@/utils/index";
 import RoleFn from "@/api/role/index";
 import ComQuery from "@/components/QueryBar/ComQuery";
 import router from "@/router/index";
-import store from '@/store/index';
+import store from "@/store/index";
 export default {
   components: {
     ComQuery,
@@ -258,7 +266,7 @@ export default {
       dialog_user_edit: false,
       dialog_title: "",
       dialog_comquery: false,
-      dialogVisible:false,
+      dialogVisible: false,
       rolelist: [],
       roleids: [],
       editfields: [],
@@ -277,14 +285,14 @@ export default {
         name: "",
         pwd: "",
         roleids: [],
-        adduser:store.getters.userinfo.id
+        adduser: store.getters.userinfo.id,
       },
       user_form_edit: {
         roleids: [],
       },
       pwd_form: {
-        id:0,
-        pwd:''
+        id: 0,
+        pwd: "",
       },
       rules: {
         code: [{ required: true, message: "请输入用户编码", trigger: "blur" }],
@@ -339,44 +347,45 @@ export default {
       this.dialog_userrole = true;
     },
     user_edit(row) {
-      let isedit = this.list.filter(i=>i.edit).length
-     if(isedit){
-       this.$message.error('行处于编辑状态,请完成行编辑')
-     }else{
-     this.currowobj = deepClone(row)
-      row.edit = true;}
+      let isedit = this.list.filter((i) => i.edit).length;
+      if (isedit) {
+        this.$message.error("行处于编辑状态,请完成行编辑");
+      } else {
+        this.currowobj = deepClone(row);
+        row.edit = true;
+      }
     },
-    cancel_edit(row){
-      let pos = this.list.findIndex(t=>t.id == row.id)
+    cancel_edit(row) {
+      let pos = this.list.findIndex((t) => t.id == row.id);
       let rowdata = deepClone(this.currowobj);
       this.$set(rowdata);
-      this.list.splice(pos,1,rowdata);
+      this.list.splice(pos, 1, rowdata);
     },
     submit_edit(row) {
       edit_user_info(row).then((res) => {
         this.$message(res.msg);
         if (res.code === 1) {
-          row.roles=[]
+          row.roles = [];
           row.roleids.forEach((i) => {
             let temp = this.rolelist.filter((t) => t.id === i)[0];
-            row.roles.push(temp)
+            row.roles.push(temp);
           });
           row.edit = false;
         }
       });
     },
     change_pwd(row) {
-      this.dialogVisible=true
-      this.pwd_form.id = row.id
+      this.dialogVisible = true;
+      this.pwd_form.id = row.id;
     },
-    change_pwd_handle(){
-      reset_userpwd(this.pwd_form).then(res=>{
-        this.$message.success(res.msg)
-        if(res.code === 1){
-          this.$refs.pwdform.resetFields()
-          this.dialogVisible = false
+    change_pwd_handle() {
+      reset_userpwd(this.pwd_form).then((res) => {
+        this.$message.success(res.msg);
+        if (res.code === 1) {
+          this.$refs.pwdform.resetFields();
+          this.dialogVisible = false;
         }
-      })
+      });
     },
     save_user() {
       this.$refs["user_form"].validate((v) => {
@@ -444,9 +453,12 @@ export default {
     query_close_handle(data) {
       this.dialog_comquery = data;
     },
-    handleSelectionChange(selection){
-      conso.log(selection)
-    }
+    handleSelect(selection, row) {
+
+      this.$refs.table_user.toggleRowSelection(r,sel)
+      conso.log(r);
+      conso.log(sel);
+    },
   },
 };
 </script>
