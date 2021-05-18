@@ -62,3 +62,19 @@ export function userlist(data) {
     data: data
   })
 }
+
+export function enableuser(data){
+  return request({
+    method: 'post',
+    url: '/user/enable',
+    data: data
+  })
+}
+
+export function disableuser(data){
+  return request({
+    method: 'post',
+    url: '/user/disable',
+    data: data
+  })
+}

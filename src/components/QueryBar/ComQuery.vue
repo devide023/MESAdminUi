@@ -1,21 +1,10 @@
 <template>
   <div>
-    <el-dialog
-      title="组合查询"
-      v-el-drag-dialog
-      :visible.sync="showdialog"
-      @close="close_dialog_handle"
-    >
-      <el-table :data="list"
-      :empty-text="empty_text"
-      style="width: 100%">
+    <el-dialog title="组合查询" v-el-drag-dialog :visible.sync="showdialog">
+      <el-table :data="list" :empty-text="empty_text" style="width: 100%">
         <el-table-column header-align="center" align="center" label="左括号">
           <template slot-scope="scope">
-            <el-select
-              v-model="scope.row.left"
-              size="small"
-              clearable
-            >
+            <el-select v-model="scope.row.left" size="small" clearable>
               <el-option
                 v-for="(item, index) in leftlist"
                 :key="index"
@@ -76,11 +65,7 @@
         </el-table-column>
         <el-table-column header-align="center" align="center" label="右括号">
           <template slot-scope="scope">
-            <el-select
-              v-model="scope.row.right"
-              size="small"
-              clearable
-            >
+            <el-select v-model="scope.row.right" size="small" clearable>
               <el-option
                 v-for="(item, index) in rightlist"
                 :key="index"
@@ -110,7 +95,7 @@
 </template>
 
 <script>
-import elDragDialog from '@/directive/el-drag-dialog'
+import elDragDialog from "@/directive/el-drag-dialog";
 export default {
   directives: { elDragDialog },
   props: {
@@ -128,8 +113,7 @@ export default {
     return {
       list: [],
       rowindex: 0,
-      isclose:false,
-      empty_text:'查询条件为空',
+      empty_text: "查询条件为空",
       leftlist: [
         { label: "", value: "" },
         { label: "(", value: "(" },
@@ -177,7 +161,7 @@ export default {
           ret + ` ${item.colname} ${item.oper} ${item.value} ${item.logic} `;
       });
       this.$emit("query", { exp: ret, list: this.list });
-      this.$emit("close",this.isclose)
+      this.$emit("update:isshow", false);
     },
     and_query_handle() {
       this.list.push({
@@ -194,9 +178,6 @@ export default {
     remove_row_handle(row) {
       let pos = this.list.findIndex((i) => i.rowno === row.rowno);
       this.list.splice(pos, 1);
-    },
-    close_dialog_handle() {
-      this.$emit("close", this.isclose);
     },
   },
 };

@@ -7,38 +7,36 @@
         clearable
         size="small"
         class="query_txt"
-      ></el-input>
+      />
       <el-button
         type="success"
         icon="el-icon-search"
         size="small"
         @click="queryhandle"
-        >查询</el-button
-      >
-      <el-button type="warning" @click="dialog_comquery = true" size="small"
-        >组合查询</el-button
-      >
+      >查询</el-button>
+      <el-button type="warning" size="small" @click="dialog_comquery = true">组合查询</el-button>
+      <el-button type="danger" size="small" @click="disable_user">禁用</el-button>
+      <el-button type="info" size="small" @click="enable_user">启用</el-button>
       <el-button
+        v-fun="{ code: 'add' }"
         type="primary"
         size="small"
         icon="el-icon-plus"
-        v-fun="{ code: 'add' }"
         @click="show_user_dialog"
-        >新增</el-button
-      >
+      >新增</el-button>
     </div>
     <el-table
-      :data="list"
       ref="table_user"
+      :data="list"
       stripe
       border
       row-key="id"
       size="mini"
       style="width: 100%"
+      @selection-change="handleSelectionChange"
     >
-      <el-table-column type="selection" @select="handleSelect">
-      </el-table-column>
-      <el-table-column prop="id" label="UID" width="100"> </el-table-column>
+      <el-table-column type="selection" />
+      <el-table-column prop="id" label="UID" width="100" />
       <el-table-column label="状态" width="100">
         <template slot-scope="scope">
           <el-tag :type="scope.row.status | tagtype">{{
@@ -47,28 +45,28 @@
         </template>
       </el-table-column>
       <el-table-column
+        v-hide="{ code: 'code' }"
         prop="code"
         column-key="code"
         label="编号"
-        v-hide="{ code: 'code' }"
         width="100"
       >
         <template slot-scope="scope">
           <template v-if="scope.row.edit">
-            <el-input v-model="scope.row.code" ref="code"></el-input>
+            <el-input ref="code" v-model="scope.row.code" />
           </template>
           <span v-else>{{ scope.row.code }}</span>
         </template>
       </el-table-column>
       <el-table-column
+        v-hide="{ code: 'name' }"
         label="姓名"
         width="150"
         column-key="name"
-        v-hide="{ code: 'name' }"
       >
         <template slot-scope="scope">
           <template v-if="scope.row.edit">
-            <el-input v-model="scope.row.name" ref="name"></el-input>
+            <el-input ref="name" v-model="scope.row.name" />
           </template>
           <span v-else>{{ scope.row.name }}</span>
         </template>
@@ -82,8 +80,7 @@
                 :key="item.id"
                 :label="item.title"
                 :value="item.id"
-              >
-              </el-option>
+              />
             </el-select>
           </template>
           <span v-else>{{ get_rolesname(scope.row.roles) }}</span>
@@ -93,27 +90,22 @@
         <template slot-scope="scope">
           <el-dropdown>
             <span class="el-dropdown-link">
-              <i class="el-icon-setting" style="font-size: 16px"></i>
+              <i class="el-icon-setting" style="font-size: 16px" />
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item
                 v-if="!scope.row.edit"
                 @click.native="user_edit(scope.row)"
-                >编辑</el-dropdown-item
-              >
+              >编辑</el-dropdown-item>
               <el-dropdown-item
                 v-if="scope.row.edit"
                 @click.native="submit_edit(scope.row)"
-                >提交</el-dropdown-item
-              >
+              >提交</el-dropdown-item>
               <el-dropdown-item
                 v-if="scope.row.edit"
                 @click.native="cancel_edit(scope.row)"
-                >取消</el-dropdown-item
-              >
-              <el-dropdown-item @click.native="change_pwd(scope.row)"
-                >改密</el-dropdown-item
-              >
+              >取消</el-dropdown-item>
+              <el-dropdown-item @click.native="change_pwd(scope.row)">改密</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </template>
@@ -124,30 +116,30 @@
       :current-page="pageindex"
       :page-size="pagesize"
       :page-sizes="[20, 50, 100, 200]"
-      @current-change="handleCurrentChange"
       layout="total, sizes, prev, pager, next"
-      @size-change="handleSizeChange"
       background
       style="text-align: right"
-    ></el-pagination>
+      @current-change="handleCurrentChange"
+      @size-change="handleSizeChange"
+    />
 
     <el-dialog :title="dialog_title" :visible.sync="dialog_user" top="10px">
       <el-form
-        :model="user_form"
         ref="user_form"
+        :model="user_form"
         :rules="rules"
         label-width="80px"
         label-position="right"
         size="small"
       >
         <el-form-item label="用户编码" prop="code">
-          <el-input v-model="user_form.code" maxlength="10"></el-input>
+          <el-input v-model="user_form.code" maxlength="10" />
         </el-form-item>
         <el-form-item label="用户名" prop="name">
-          <el-input v-model="user_form.name" maxlength="20"></el-input>
+          <el-input v-model="user_form.name" maxlength="20" />
         </el-form-item>
         <el-form-item label="密码" prop="pwd">
-          <el-input type="password" v-model="user_form.pwd"></el-input>
+          <el-input v-model="user_form.pwd" type="password" />
         </el-form-item>
         <el-form-item label="关联角色" prop="roleids">
           <el-select
@@ -162,8 +154,7 @@
               :key="item.id"
               :label="item.title"
               :value="item.id"
-            >
-            </el-option>
+            />
           </el-select>
         </el-form-item>
       </el-form>
@@ -178,18 +169,18 @@
       top="10px"
     >
       <el-form
-        :model="user_form_edit"
         ref="user_form_edit"
+        :model="user_form_edit"
         :rules="rules"
         label-width="80px"
         label-position="right"
         size="small"
       >
         <el-form-item label="用户编码" prop="code">
-          <el-input v-model="user_form_edit.code" maxlength="10"></el-input>
+          <el-input v-model="user_form_edit.code" maxlength="10" />
         </el-form-item>
         <el-form-item label="用户名" prop="name">
-          <el-input v-model="user_form_edit.name" maxlength="20"></el-input>
+          <el-input v-model="user_form_edit.name" maxlength="20" />
         </el-form-item>
         <el-form-item label="关联角色" prop="roleids">
           <el-select
@@ -204,34 +195,32 @@
               :key="item.id"
               :label="item.title"
               :value="item.id"
-            >
-            </el-option>
+            />
           </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="danger" @click="dialog_user_edit = false"
-          >取消</el-button
-        >
+        <el-button type="danger" @click="dialog_user_edit = false">取消</el-button>
         <el-button type="primary" @click="submit_user_edit">确定</el-button>
       </div>
     </el-dialog>
+    <!--组合查询对话框-->
     <com-query
-      :isshow="dialog_comquery"
+      :isshow.sync="dialog_comquery"
       :collist="collist"
       @query="com_query_handle"
-      @close="query_close_handle"
-    ></com-query>
+    />
+    <!--重置秘密对话框-->
     <el-dialog title="重置密码" :visible.sync="dialogVisible">
       <el-form
-        :model="pwd_form"
         ref="pwdform"
+        :model="pwd_form"
         label-width="80px"
         label-position="right"
         size="small"
       >
         <el-form-item label="密码">
-          <el-input type="password" v-model="pwd_form.pwd"></el-input>
+          <el-input v-model="pwd_form.pwd" type="password" />
         </el-form-item>
       </el-form>
       <div slot="footer">
@@ -248,6 +237,8 @@ import {
   save_user_info,
   edit_user_info,
   reset_userpwd,
+  enableuser,
+  disableuser
 } from "@/api/user";
 import { deepClone } from "@/utils/index";
 import RoleFn from "@/api/role/index";
@@ -271,6 +262,7 @@ export default {
       roleids: [],
       editfields: [],
       currowobj: {},
+      multipleSelection: [],
       collist: [
         { label: "姓名", value: "ta.name" },
         { label: "编号", value: "ta.code" },
@@ -450,14 +442,34 @@ export default {
       this.queryform.queryexp = data.list;
       this.get_userlist();
     },
-    query_close_handle(data) {
-      this.dialog_comquery = data;
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
     },
-    handleSelect(selection, row) {
-
-      this.$refs.table_user.toggleRowSelection(r,sel)
-      conso.log(r);
-      conso.log(sel);
+    disable_user() {
+      if (this.multipleSelection.length>0) {
+        let ids = this.multipleSelection
+          .filter((i) => i.status === 1)
+          .map((i) => i.id);
+        disableuser({ids:ids}).then(res=>{
+          this.$message.success(res.msg)
+          this.get_userlist()
+        })
+      } else {
+        this.$message.error("请选择要操作的行");
+      }
+    },
+    enable_user() {
+      if (this.multipleSelection.length>0) {
+        let ids = this.multipleSelection
+          .filter((i) => i.status === 0)
+          .map((i) => i.id);
+        enableuser({ids:ids}).then(res=>{
+          this.$message.success(res.msg)
+          this.get_userlist()
+        })
+      } else {
+        this.$message.error("请选择要操作的行");
+      }
     },
   },
 };
