@@ -87,7 +87,7 @@
     <!--角色编辑窗口-->
     <el-dialog
       :title="dialogtitle"
-      :visible.sync="dialogVisible"
+      :visible.sync="dialogEdit"
       @opened="roleform_openhandle"
     >
       <el-form
@@ -112,7 +112,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button type="danger" @click="dialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="dialogEdit = false">取消</el-button>
         <el-button type="primary" @click="submit_role_form_edit"
           >确定</el-button
         >
@@ -133,6 +133,7 @@ export default {
   data() {
     return {
       dialogVisible: false,
+      dialogEdit: false,
       dialogtitle: "",
       list: [],
       permissiontree: [],
@@ -203,7 +204,7 @@ export default {
         this.role_form_edit.menu_nodes = res.menus;
         this.role_form_edit.status = 1;
         this.role_form_edit.updateuser = store.getters.userinfo.id
-        this.dialogVisible = true;
+        this.dialogEdit = true;
       });
     },
     handleSizeChange(val) {
@@ -238,7 +239,8 @@ export default {
         this.$message.success(res.msg)
         if(res.code === 1)
         {
-          this.dialogVisible = false
+          this.dialogEdit = false
+          this.$refs.permis_tree_edit.setCheckedNodes([]);
         }
       })
       
@@ -246,7 +248,7 @@ export default {
     roleform_openhandle() {
       let nodes = [];
       this.role_form_edit.menu_nodes.forEach(i=>{
-        console.log(i)
+        
         nodes.push(i)
         if(i.menu_permission){
           i.menu_permission.funs

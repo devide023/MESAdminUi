@@ -53,7 +53,7 @@
       >
         <template slot-scope="scope">
           <template v-if="scope.row.edit">
-            <el-input ref="code" v-model="scope.row.code" />
+            <el-input ref="code" v-model="scope.row.code" size="mini" />
           </template>
           <span v-else>{{ scope.row.code }}</span>
         </template>
@@ -66,7 +66,7 @@
       >
         <template slot-scope="scope">
           <template v-if="scope.row.edit">
-            <el-input ref="name" v-model="scope.row.name" />
+            <el-input ref="name" v-model="scope.row.name" size="mini" />
           </template>
           <span v-else>{{ scope.row.name }}</span>
         </template>
@@ -74,7 +74,7 @@
       <el-table-column label="角色" column-key="role">
         <template slot-scope="scope">
           <template v-if="scope.row.edit">
-            <el-select v-model="scope.row.roleids" multiple style="width: 100%">
+            <el-select v-model="scope.row.roleids" multiple size="mini" style="width: 100%">
               <el-option
                 v-for="item in rolelist"
                 :key="item.id"

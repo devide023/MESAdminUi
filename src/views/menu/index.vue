@@ -215,6 +215,73 @@
         <el-button type="primary" @click="save_fun_fields">确定</el-button>
       </div>
     </el-dialog>
+    <!--编辑菜单对话框-->
+    <el-dialog :title="dialog_title" :visible.sync="dialog_edit" top="10px">
+      <el-form
+        :model="menu_form_edit"
+        :rules="rules"
+        label-position="right"
+        label-width="80px"
+        size="small"
+      >
+      <el-form-item label="编码" prop="code">
+          <el-input v-model="menu_form_edit.code"></el-input>
+        </el-form-item>
+        <el-form-item label="名称" prop="title">
+          <el-input v-model="menu_form_edit.title"></el-input>
+        </el-form-item>
+        <el-form-item label="类型" prop="menutype">
+          <el-select :disabled="menu_form_edit.menutype|is_disable"  v-model="menu_form_edit.menutype" style="width:100%">
+            <el-option
+              v-for="(item,index) in menutypes"
+              :key="index"
+              :label="item.name"
+              :value="item.code">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <div v-if="menu_form_edit.menutype ==='01' || menu_form_edit.menutype ==='02'">
+        <el-form-item label="路由路径" prop="path">
+          <el-input v-model="menu_form_edit.path" placeholder="" />
+        </el-form-item>
+        <el-form-item label="视图路径">
+          <el-input v-model="menu_form_edit.viewpath" placeholder="" />
+        </el-form-item>
+        <el-form-item label="图标" prop="icon">
+          <el-select
+            v-model="menu_form_edit.icon"
+            placeholder=""
+            style="width: 100%"
+          >
+            <el-option
+              v-for="(item, index) in elementIcons"
+              :key="index"
+              :value="item"
+              :label="item"
+            >
+              <span style="float: left">{{ item }}</span>
+              <span style="float: right"><svg-icon :icon-class="item" /></span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        </div>
+        <el-form-item label="状态">
+          <el-select v-model="menu_form_edit.status" style="width:100%">
+            <el-option label="启用" :value="1"></el-option>
+            <el-option label="禁用" :value="0"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="权重">
+          <el-input-number v-model="menu_form_edit.seq" @change="inputChange" :min="10" :step="10" ></el-input-number>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button type="danger" @click="dialog_edit = false">取消</el-button>
+        <el-button type="primary" @click="submit_menu_form_edit"
+          >确定</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -224,11 +291,20 @@ import MenuFn from "@/api/menu/index";
 import elementIcons from "@/views/icons/element-icons";
 import { menutypes, funcodes } from "./menutypes";
 import store from "@/store/index";
+import {deepClone} from '@/utils/index';
 export default {
   components: {
     BaseQuery,
   },
   filters: {
+    is_disable(val) {
+      if(val==='01' || val === '02') {
+        return false
+      }
+      else{
+       return true
+      }
+    },
     typename(typecode) {
       let item = menutypes.filter((i) => i.code === typecode);
       if (item) {
@@ -332,7 +408,8 @@ export default {
       this.getlist();
     },
     edit_menu(row) {
-      this.menu_form_edit = row;
+      this.menu_form_edit = deepClone(row);
+      this.dialog_title = "菜单编辑";
       this.dialog_edit = true;
     },
     get_submenu(row, treeNode, resolve) {
@@ -377,6 +454,9 @@ export default {
     },
     handlechange(val) {
       this.menu_form.seq = val;
+    },
+    inputChange(val){
+      this.menu_form_edit.seq = val;
     },
     add_sub_menu(row) {
       this.current_menuid = row.id;
@@ -440,6 +520,7 @@ export default {
     remove_field_handle(index) {
       this.menu_form.fields.splice(index, 1);
     },
+    submit_menu_form_edit() {},
   },
 };
 </script>
