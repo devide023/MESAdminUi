@@ -218,6 +218,7 @@
     <!--编辑菜单对话框-->
     <el-dialog :title="dialog_title" :visible.sync="dialog_edit" top="10px">
       <el-form
+        ref="edit_roleform"
         :model="menu_form_edit"
         :rules="rules"
         label-position="right"
@@ -409,6 +410,8 @@ export default {
     },
     edit_menu(row) {
       this.menu_form_edit = deepClone(row);
+      this.menu_form_edit.updateuser = store.getters.userinfo.id
+
       this.dialog_title = "菜单编辑";
       this.dialog_edit = true;
     },
@@ -520,7 +523,19 @@ export default {
     remove_field_handle(index) {
       this.menu_form.fields.splice(index, 1);
     },
-    submit_menu_form_edit() {},
+    submit_menu_form_edit() {
+      this.$refs['edit_roleform'].validate(v=>{
+        if(v){
+          MenuFn.edit_menu(this.menu_form_edit).then(res=>{
+            this.$message.success(res.msg)
+            if(res.code === 1){
+              this.dialog_edit = false
+              this.getlist()
+            }
+          })
+        }
+      })
+    },
   },
 };
 </script>

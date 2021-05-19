@@ -92,6 +92,7 @@
     >
       <el-form
         :model="role_form_edit"
+        ref="edit_roleform"
         label-width="80px"
         label-position="right"
         size="small"
